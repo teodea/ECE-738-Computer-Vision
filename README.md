@@ -1,1 +1,1 @@
-# ECE 738 - Computer-Vision
+# ECE 738 - Computer Vision
