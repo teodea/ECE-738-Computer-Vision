@@ -1,4 +1,4 @@
-path = 'ReconstructionData/L_rectified_stereoU1.jpg';
+path = '../images/ReconstructionData/L_rectified_stereoU1.jpg';
 I_RGB = imread(path);
 % sift only works on grayscale, but can still use x,y coords 
 I_GRAY = rgb2gray(I_RGB);
