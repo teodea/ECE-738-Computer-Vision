@@ -8,7 +8,7 @@ metric = features.Metric;
 % - not incredibly efficient (O(n^2), n = num features), but since n is not 
 %   too large, it runs quite fast anyways
 function [keep_feature] = is_max_feature(location, metric, x, y, m)
-    for i=1:length(location)    
+    for i=1:size(location,1)    
         if abs(location(i,1)-x) <= 3 && abs(location(i,2)-y) <= 3
             % note this handles the duplicate case (only throws out if
             % strictly less than)
