@@ -1,8 +1,11 @@
-path = '../images/ReconstructionData/L_rectified_stereoU1.jpg';
-I_RGB = imread(path);
-% sift only works on grayscale, but can still use x,y coords 
-I_GRAY = rgb2gray(I_RGB);
-features = detectSIFTFeatures(I_GRAY);
-imshow(I_RGB);
-hold on;
-plot(features.selectStrongest(100))
+function [features] = sift(path, number_of_strongest_features, display_features)
+    I_RGB = imread(path);
+    % sift only works on grayscale, but can still use x,y coords 
+    I_GRAY = rgb2gray(I_RGB);
+    features = detectSIFTFeatures(I_GRAY);
+    if display_features
+        imshow(I_RGB);
+        hold on;
+        plot(features.selectStrongest(number_of_strongest_features));
+    end
+end
