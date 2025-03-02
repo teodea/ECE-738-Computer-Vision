@@ -1,7 +1,7 @@
 image_path = '../images/ReconstructionData/L_rectified_stereoU1.jpg';
 number_of_strongest_features = 500;
 display_features = false;
-pixel_area = 3
+pixel_area = 3;
 
 % note that number_of_strongest_features is only used to display features
 % when display_features= true, therefore the features are always saved

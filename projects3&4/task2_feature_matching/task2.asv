@@ -1,0 +1,27 @@
+addpath("../task1_feature_detection");
+
+left_files = dir(fullfile('L_rectified', '*.JPG'));
+right_files = dir(fullfile('R_rectified', '*.JPG'));
+
+for i = 1:length(left_files)
+    left_img = fullfile('L_rectified', left_files(i).name);
+    right_img = fullfile('R_rectified', right_files(i).name);
+
+    left_features = retrievingFeatures(left_img);
+    right_features = retrievingFeatures(right_img);
+
+
+    [descriptors_left, valid_points_left] = extractFeatures(left_img, left_features);
+    [descriptors_right, valid_points_right] = extractFeatures(right_img, right_features);
+
+    indexPairs = matchFeatures(features_left, features_right); % consider using 'MatchThreshold' and 'MaxRatio' for better results
+
+    matched_points_left = valid_points_left(indexPairs(:,1));
+    matched_points_right = valid_points_right(indexPairs(:,2));
+    
+    figure;
+    
+    showMatchedFeatures(left_img, right_img, matched_points_left, matched_points_right, 'montage');
+
+    print('d')
+end
