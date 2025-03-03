@@ -25,6 +25,18 @@ function [all_matched_points_left, all_matched_points_right] = task2()
     
         matched_points_left = valid_points_left(indexPairs(:,1));
         matched_points_right = valid_points_right(indexPairs(:,2));
+
+        % only keep features on nearly same scan line
+        keep = true(size(matched_points_left, 1), 1);
+        threshold = 1;
+        for k = 1:length(keep)
+            if abs(matched_points_left.Location(k,2) - matched_points_right.Location(k,2)) > threshold
+                keep(k) = false;
+            end
+        end
+        matched_points_left = matched_points_left(keep);
+        matched_points_right = matched_points_right(keep);
+      
         
         all_matched_points_left{i} = matched_points_left;
         all_matched_points_right{i} = matched_points_right;
