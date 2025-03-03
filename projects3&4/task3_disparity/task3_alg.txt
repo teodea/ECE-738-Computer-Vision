@@ -1,0 +1,47 @@
+
+visited = set() # all pixels we have already looked for matches of 
+i = 0
+WHILE i < len(left_matches):
+    left, right = left_matches[i], right_matches[i]
+    visited.add(left)
+    new_left, new_right = disparity_grow(left, right, visited)
+    left_matches.extend(new_left)
+    right_matches.extend(new_right)
+    i += 1
+
+
+def disparity_grow(left, right, visited):
+    d = abs(left[0] - right[0])
+    x_l, x_r = left
+    neighbors = [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]
+    left_matches = [] 
+    right_matches = []
+    for dx, dy in neighbors:
+        x_l' = x_l + dx 
+        y_l' = x_r + dy
+        if (x_l', y_l') in visited:
+            continue
+        visited.add((x_l', y_l'))
+        x_r', y_r' = best_disparity(x_l', y_l', d)  # if no good ones, will be -1, -1 
+        if x_r' > -1:
+            left_matches.append((x_l', y_l'))
+            right_matches.append((x_r', y_r'))
+    return left_matches, right_matches
+
+
+def best_disparity(x_l, y_l, d):
+    x_r = x_l + d 
+    y_r = y_l
+    neighbors = [[-1, -1], [0, -1], [1, -1], [-1, 0], [0, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]
+    best_SSD = THRESHOLD
+    best_x_r = -1 
+    best_y_r = -1
+    for dx, dy in neighbors:
+        x_r' = x_r + dx 
+        y_r' = y_r + dy 
+        SSD = get_SSD((x_l, y_l), (x_r', y_r'))
+        if SSD < best_SSD: 
+            best_SSD = SSD
+            best_x_r = x_r' 
+            best_y_r = y_r'
+    return best_x_r, best_y_r
