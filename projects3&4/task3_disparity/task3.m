@@ -1,98 +1,130 @@
-addpath("../task2_feature_matching/");
+function [all_left_matches, all_right_matches] = task3()
+    addpath("../task2_feature_matching/");
 
-left_img_path = fullfile('../images/ReconstructionData/L_rectified_stereo', "L_rectified_stereoU1.jpg");
-right_img_path = fullfile('../images/ReconstructionData/R_rectified_stereo', "R_rectified_stereoU1.jpg");
-left_img = rgb2gray(imread(left_img_path));
-right_img = rgb2gray(imread(right_img_path));
-left_img = padarray(left_img, [3 3], 0, "post");
-right_img = padarray(right_img, [3 3], 0, "post");
+    % PARAMS
+    SSD_threshold = 500;
 
-visited = [];
-i = 1;
+    left_files = dir(fullfile('../images/ReconstructionData/L_rectified_stereo', '*.jpg')); %'../images/ReconstructionData/L_rectified_stereo'
+    right_files = dir(fullfile('../images/ReconstructionData/R_rectified_stereo', '*.jpg')); %'../images/ReconstructionData/R_rectified_stereo'
+    
+    % get matches from task 2
+    [all_matched_points_left, all_matched_points_right] = task2();
 
-[all_matched_points_left, all_matched_points_right] = task2();
+    all_left_matches = cell(length(left_files), 1);
+    all_right_matches = cell(length(right_files), 1);
 
-left_matches = all_matched_points_left{1}.Location(:, :);
-right_matches = all_matched_points_right{1}.Location(:, :);
+    for f = 1:length(left_files)
+        %disp(f)
+        left_img_path = fullfile('../images/ReconstructionData/L_rectified_stereo', left_files(f).name);
+        right_img_path = fullfile('../images/ReconstructionData/R_rectified_stereo', right_files(f).name);
+        left_img = rgb2gray(imread(left_img_path));
+        right_img = rgb2gray(imread(right_img_path));
+        left_img = padarray(left_img, [3 3], 0, "post");
+        right_img = padarray(right_img, [3 3], 0, "post");
 
-figure;
-showMatchedFeatures(left_img, right_img, left_matches, right_matches, 'montage');
+        left_matches = round(all_matched_points_left{1}.Location(:, :));
+        right_matches = round(all_matched_points_right{1}.Location(:, :));
 
-while i <= size(left_matches,1)
-    left = round(left_matches(i, :)); 
-    right = round(right_matches(i, :));
-    [new_left_matches, new_right_matches, visited] = disparity_grow(left, right, visited, left_img, right_img);
-    for j=1:size(new_left_matches, 1)
-        left_matches = [left_matches;new_left_matches(j, :)];
-        right_matches = [right_matches;new_right_matches(j, :)];
-    end
-    i = i + 1;
-end
+        %figure;
+        %showMatchedFeatures(left_img, right_img, left_matches, right_matches, 'montage');
+        %disp("initial matches")
 
-figure;
-showMatchedFeatures(left_img, right_img, left_matches, right_matches, 'montage');
-
-
-function [new_left_matches, new_right_matches, visited] = disparity_grow(left, right, visited, left_img, right_img)
-    disparity = right(1,1) - left(1,1);
-    x_l = left(1, 1);
-    y_l = left(1, 2);
-    new_left_matches = [];
-    new_right_matches = [];
-    neighbors = [[-1 -1]; [0 -1]; [1 -1]; [-1 0]; [1 0]; [-1 1]; [0 1]; [1 1]];
-    for i=1:size(neighbors,1)
-        dx = neighbors(i, 1);
-        dy = neighbors(i, 2);
-        x_l_cur = x_l + dx;
-        y_l_cur = y_l + dy;
-        if x_l_cur < 1 || x_l_cur + 3 > size(left_img, 1) || y_l_cur < 1 || y_l_cur + 3 > size(left_img, 2)
-            continue
-        end
-        if any(ismember(visited,[x_l_cur y_l_cur]))
-            continue
-        end
+        i = 1;
+        visited = zeros(size(left_img, 1:2));
+        visited(left_matches) = 1;
+        while i<=size(left_matches, 1)
+            x_l = left_matches(i, 1);
+            y_l = left_matches(i, 2);
+            x_r = right_matches(i, 1);
+            y_r = right_matches(i, 2);
+            disparity = x_r - x_l;
+            % go through all neighbors of (x_l, y_l) and find best match for each
+            for dx=-1:1
+                for dy=-1:1
+                    % skip current pixel
+                    if dx == 0 && dy == 0
+                        continue
+                    end
+                    x_l_match = x_l + dx;
+                    y_l_match = y_l + dy;
         
-        [x_r_cur, y_r_cur] = best_disparity(x_l_cur, y_l_cur, disparity, left_img, right_img);
-        if x_r_cur > -1
-            visited = [visited;x_l_cur y_l_cur];
-            new_left_matches = [new_left_matches;x_l_cur y_l_cur];
-            new_right_matches = [new_right_matches;x_r_cur y_r_cur];
+                    % skip IOB pixels or visited pixles
+                    if invalid_pixel(x_l_match, y_l_match, left_img)
+                        continue
+                    end
+        
+                    if visited(y_l_match, x_l_match) == 1
+                        continue
+                    end
+        
+                    % get best match in right image and its SSD
+                    [x_r_match, y_r_match, SSD] = best_match(x_l_match, y_l_match, disparity, left_img, right_img);
+        
+                    % only keep match if SSD below threshold
+                    if SSD <= SSD_threshold
+                        left_matches = [left_matches; x_l_match y_l_match];
+                        right_matches = [right_matches; x_r_match y_r_match];
+                        visited(y_l_match, x_l_match) = 1;
+                    end
+                end
+            end
+            i = i + 1; 
         end
+
+        %figure;
+        %showMatchedFeatures(left_img, right_img, left_matches, right_matches, 'montage');
+        %disp("initial matches")
+
+        %all_left_matches = [all_left_matches; left_matches];
+        %all_right_matches = [all_right_matches; right_matches];
+        all_left_matches{f} = left_matches;
+        all_right_matches{f} = right_matches;
     end
 end
 
-function [best_x, best_y] = best_disparity(x_l, y_l, disparity, left_img, right_img)
-    x_r = x_l + disparity;
-    y_r = y_l;
-    neighbors = [[-1 -1]; [0 -1]; [1 -1]; [0 0]; [-1 0]; [1 0]; [-1 1]; [0 1]; [1 1]];
-    best_SSD = Inf; % need to finetune this
-    best_x = -1;
-    best_y = -1;
-    for i=1:size(neighbors,1)
-        % NEED TO DEAL WITH IOB. IF IOB, DO NOT CALL GET_SSD
-        dx = neighbors(i, 1);
-        dy = neighbors(i, 2);
-        x_r_cur = x_r + dx;
-        y_r_cur = y_r + dy;
-        if x_r_cur < 1 || x_r_cur > size(right_img, 1) || y_r_cur < 1 || y_r_cur > size(right_img, 2)
-            continue
-        end
-        SSD = get_SSD(x_l, y_l, x_r_cur, y_r_cur, left_img, right_img);
-        if SSD < best_SSD
-            best_SSD = SSD;
-            best_x = x_r_cur;
-            best_y = y_r_cur;
+function [x_r_match, y_r_match, SSD] = best_match(x_l_match, y_l_match, disparity, left_img, right_img)
+    % center is what would be the match if disparity was the same and y was the same
+    x_r_center = x_l_match + disparity;
+    y_r_center = y_l_match;
+
+    x_r_match = -1;
+    y_r_match = -1;
+    best_SSD = Inf;
+
+    % go through all possible matches (i.e. the region surrounding and including the center
+    for dx=-1:1
+        for dy=-1:1
+            x_r_cur = x_r_center + dx;
+            y_r_cur = y_r_center + dy;
+
+            % skip IOB pixels
+            if invalid_pixel(x_r_cur, y_r_cur, right_img)
+                continue
+            end
+
+            SSD = get_SSD(x_l_match, y_l_match, x_r_cur, y_r_cur, left_img, right_img);
+            if SSD < best_SSD
+                x_r_match = x_r_cur;
+                y_r_match = y_r_cur;
+                best_SSD = SSD;
+            end
         end
     end
 end
 
 function [SSD] = get_SSD(x_l, y_l, x_r, y_r, left_img, right_img)
     % Assumes all coordinates are not IOB
+    % Important: matlab images are (y,x) NOT (x,y)!
     left_patch = double(left_img(y_l:y_l+3, x_l:x_l+3));
     right_patch = double(right_img(y_r:y_r+3, x_r:x_r+3));
     diff = left_patch - right_patch;
     SSD = sum(diff(:).^2);
-    disp(SSD)
 end
 
-%any(ismember(visited,new,'rows'));
+function [invalid] = invalid_pixel(x, y, img)
+    if x < 1 || x + 3 > size(img, 2) || y < 1 || y + 3 > size(img, 1)
+        invalid = true;
+    else
+        invalid = false;
+    end
+end

@@ -28,6 +28,10 @@ function [all_left_matches, all_right_matches] = task_3_run()
         left_matches = round(all_matched_points_left{1}.Location(:, :));
         right_matches = round(all_matched_points_right{1}.Location(:, :));
 
+        %figure;
+        %showMatchedFeatures(left_img, right_img, left_matches, right_matches, 'montage');
+        %disp("initial matches")
+
         i = 1;
         visited = zeros(size(left_img, 1:2));
         visited(left_matches) = 1;
@@ -69,6 +73,11 @@ function [all_left_matches, all_right_matches] = task_3_run()
             end
             i = i + 1; 
         end
+
+        %figure;
+        %showMatchedFeatures(left_img, right_img, left_matches, right_matches, 'montage');
+        %disp("initial matches")
+
         all_left_matches = [all_left_matches; left_matches]
         all_right_matches = [all_right_matches; right_matches]
     end
