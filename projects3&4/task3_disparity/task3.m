@@ -2,7 +2,7 @@ function [all_left_matches, all_right_matches] = task3()
     addpath("../task2_feature_matching/");
 
     % PARAMS
-    SSD_threshold = 500;
+    SSD_threshold = 250;
 
     left_files = dir(fullfile('../images/ReconstructionData/L_rectified_stereo', '*.jpg')); %'../images/ReconstructionData/L_rectified_stereo'
     right_files = dir(fullfile('../images/ReconstructionData/R_rectified_stereo', '*.jpg')); %'../images/ReconstructionData/R_rectified_stereo'

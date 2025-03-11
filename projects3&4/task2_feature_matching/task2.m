@@ -1,5 +1,4 @@
 function [all_matched_points_left, all_matched_points_right] = task2()
-    addpath("../task1_feature_detection");
     
     % probably correct folder for task4 (for calibration data given) is
     % ReconstructionData
@@ -28,9 +27,17 @@ function [all_matched_points_left, all_matched_points_right] = task2()
 
         % only keep features on nearly same scan line
         keep = true(size(matched_points_left, 1), 1);
-        threshold = 1;
+        threshold = 20; % scan line offset
+        [img_height, img_width] = size(left_img);
+        fixed_margin_chosen = 400; % offset for x values margin
         for k = 1:length(keep)
             if abs(matched_points_left.Location(k,2) - matched_points_right.Location(k,2)) > threshold
+                keep(k) = false;
+            end
+            if matched_points_left.Location(k,1) <= fixed_margin_chosen
+                keep(k) = false;
+            end
+            if matched_points_right.Location(k,1) >= (img_width - fixed_margin_chosen)
                 keep(k) = false;
             end
         end
@@ -41,9 +48,9 @@ function [all_matched_points_left, all_matched_points_right] = task2()
         all_matched_points_left{i} = matched_points_left;
         all_matched_points_right{i} = matched_points_right;
 
-        figure;
+        %figure;
         
-        showMatchedFeatures(left_img, right_img, matched_points_left, matched_points_right, 'montage');
+        %showMatchedFeatures(left_img, right_img, matched_points_left, matched_points_right, 'montage');
     
         disp('done');
     end

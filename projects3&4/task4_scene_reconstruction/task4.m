@@ -1,6 +1,6 @@
 addpath("../task2_feature_matching");
 
-%[all_matched_points_left, all_matched_points_right] = task2();
+[all_matched_points_left, all_matched_points_right] = task2();
 
 num_picture_pairs = length(all_matched_points_left);
 

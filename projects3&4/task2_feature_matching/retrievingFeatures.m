@@ -1,4 +1,7 @@
 function features = retrievingFeatures(image_path)
+
+    addpath("../task1_feature_detection");
+
     number_of_strongest_features = 500;
     display_features = false;
     pixel_area = 3;

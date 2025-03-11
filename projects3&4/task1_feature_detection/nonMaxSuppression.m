@@ -10,7 +10,7 @@ function keptFeatures = nonMaxSuppression(features, pixel_area)
     %   too large, it runs quite fast anyways
     function [keep_feature] = is_max_feature(location, metric, x, y, m)
         keep_feature = true;
-        for i=1:size(location,1)    
+        for i=1:size(location,1)
             if abs(location(i,1)-x) <= pixel_area && abs(location(i,2)-y) <= pixel_area
                 % note this handles the duplicate case (only throws out if
                 % strictly less than)
