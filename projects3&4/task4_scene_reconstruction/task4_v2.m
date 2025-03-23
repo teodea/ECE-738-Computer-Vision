@@ -19,7 +19,7 @@ for i = 1:numel(all_left_matches)
     Z_mm = depths;
 
     figure;
-    scatter(X_mm, Y_mm, 10, Z_mm, 'filled'); % Size 10 for better visibility
+    scatter(X_mm, -Y_mm, 10, Z_mm, 'filled'); % Size 10 for better visibility
     xlabel('X (mm)');
     ylabel('Y (mm)');
     title(['2D Depth Map - Image Pair ', num2str(i)]);
@@ -29,7 +29,7 @@ for i = 1:numel(all_left_matches)
     grid on;
 
     figure;
-    scatter3(Z_mm, X_mm, Y_mm, 5, Z_mm, 'filled');
+    scatter3(Z_mm, X_mm, -Y_mm, 5, Z_mm, 'filled');
     xlabel('Depth (mm)');
     ylabel('X (mm)');
     zlabel('Y (mm)');
